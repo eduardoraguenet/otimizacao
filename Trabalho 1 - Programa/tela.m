@@ -1,5 +1,3 @@
-
-
 function varargout = tela(varargin)
 % TELA MATLAB code for tela.fig
 %      TELA, by itself, creates a new TELA or raises the existing
@@ -24,7 +22,7 @@ function varargout = tela(varargin)
 
 % Edit the above text to modify the response to help tela
 
-% Last Modified by GUIDE v2.5 03-Jul-2017 17:21:21
+% Last Modified by GUIDE v2.5 04-Jul-2017 18:36:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -120,25 +118,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-% --- Executes on button press in plotar.
-function plotar_Callback(hObject, eventdata, handles)
-% hObject    handle to plotar (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global f a b delta fmin xmin it
-fplot(f, [a b])
-grid on
-hold on
-if get(handles.plot_pontomin,'Value')==1
-    plot(xmin,fmin,'*r')
-end
-if get(handles.plot_intervalos,'Value')==1
-%plota intervalos
-end
-hold off
-
-
 function delta_Callback(hObject, eventdata, handles)
 % hObject    handle to delta (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -166,7 +145,7 @@ function rodar_Callback(hObject, eventdata, handles)
 % hObject    handle to rodar (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global f a b delta fmin xmin it
+global f a b delta fmin xmin it t printLog grade
 
 f = get(handles.funcao,'String');
 f = str2func(strcat('@(x)',f)); 
@@ -177,8 +156,10 @@ delta = str2num(get(handles.delta,'String'));
 
 
 %% METODO FIBONACCI %%
-if get(handles.fibonacci,'Value')==1
-    x1 = a;
+if get(handles.fibonacci,'Value')==1    
+tic;
+
+x1 = a;
 x4 = b;
 
 espacamento_x2=0; %%Variáveis criadas para evitar que x3 e x2 caem no mesmo ponto=casos patológicos descritos na apostila ver pg.43
@@ -189,10 +170,10 @@ f_k = L0/delta;
 binet = 0;
 j=1; %%Cálculo do numero de iterações necessárias baseada na formula de Fibonnci ver pg.44 da apostila
 while binet <f_k
-binet = sqrt(5)/5*(((1+sqrt(5))/2)^j-((1-sqrt(5))/2)^j);
-j=j+1;
+    binet = sqrt(5)/5*(((1+sqrt(5))/2)^j-((1-sqrt(5))/2)^j);
+    j=j+1; %%%%%%%%%%%%%%%%%%%%%%%%%%%%% Atualizou o j depois de calcular o de binet
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%k = j - 1;
 k=j-1;
 
 %%Inicialização - L0
@@ -204,12 +185,19 @@ f2 = f(x2);
 x3 = alpha*x4+(1-alpha)*x1 + espacamento_x3;
 f3 = f(x3);
 
+
 %%Algoritmo geral L1 em diante descrita na página 43
 for i=1:(k-1)
-    if f2<f3
-        
+    if f2<f3       
     L1 = x3-x1;
     alpha = (L0-L1)/L1;
+    
+    Log{i,1} = i;
+    Log{i,2} = x1;
+    Log{i,3} = x3;
+    Log{i,4} = L1;
+    Log{i,5} = f(x1);
+    Log{i,6} = f(x3);
     
     x4=x3;
     L0 = x4-x1;
@@ -217,10 +205,15 @@ for i=1:(k-1)
     f2 = f(x2);
     x3 = alpha*x4+(1-alpha)*x1+espacamento_x3;
     f3 = f(x3);
-else
-    
+else   
     L1 = x4-x2;
     alpha = (L0-L1)/L1;
+    Log{i,1} = i;
+    Log{i,2} = x2;
+    Log{i,3} = x4;
+    Log{i,4} = L1;
+    Log{i,5} = f(x2);
+    Log{i,6} = f(x4);
     
     x1 = x2;
     L0 = x4-x1;
@@ -229,16 +222,29 @@ else
     x3 = alpha*x4+(1-alpha)*x1;
     f3 = f(x3);
     end
-
 end
+
 if f2<f3
+%     Log{k,1} = k;
+%     Log{k,2} = x1;
+%     Log{k,3} = x3;
+%     Log{k,4} = L1;
+%     Log{k,5} = f(x1);
+%     Log{k,6} = f(x3);
     xmin = x2;
     fmin = f2;
 else
+%     Log{k,1} = k;
+%     Log{k,2} = x2;
+%     Log{k,3} = x4;
+%     Log{k,4} = L1;
+%     Log{k,5} = f(x2);
+%     Log{k,6} = f(x4);
     xmin = x3;
     fmin = f3;   
 end
-it = k;
+it = i;
+t = toc;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% METODO PROPORCAO AUREA %%
@@ -293,22 +299,51 @@ end
    
 end
 
+
+tic;
+%AQUI
+t = toc;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% METODO INTERPOLACAO POLINOMIAL %%
 if get(handles.interpol,'Value')==1
-
-
+tic;
+%AQUI
+t = toc;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%Atualizando valores da caixa de Resultados
+%% Atualizando valores da caixa de Resultados %%
 set(handles.fminimo, 'String', fmin);
 set(handles.xminimo, 'String', xmin);
 set(handles.iteracoes, 'String', it);
+set(handles.tempo, 'String', t);
+
+%% Plotar %%
+[x,y] = fplot(f, [a b]);
+plot(x,y,'linewidth',2);
+grid on
+hold on
+if get(handles.plot_pontomin,'Value')==1
+    plot(xmin,fmin,'*r')
+    hold on
+end
+if get(handles.plot_intervalos,'Value')==1
+    [lin col] = size(Log);
+    for i = 1:lin
+        plot([Log{i,2} Log{i,2}],get(handles.axes1,'YLim'),'r--')
+        plot([Log{i,3} Log{i,3}],get(handles.axes1,'YLim'),'r--')
+        hold on
+    end
+end
+hold off
 
 
 
+%Reseta lista do log%
+printLog = Log;
+clear Log;
+grade = 1;
 
 
 
@@ -365,3 +400,51 @@ function intervalo_b_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in botao_logxlsx.
+function botao_logxlsx_Callback(hObject, eventdata, handles)
+% hObject    handle to botao_logxlsx (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global printLog
+filename = 'log.xlsx';
+writetable(tabela(printLog,get(handles.fibonacci,'Value'),get(handles.aurea,'Value'),get(handles.interpol,'Value')),filename,'Sheet',1,'Range','A1')
+winopen log.xlsx
+
+% --- Executes on button press in botao_logtxt.
+function botao_logtxt_Callback(hObject, eventdata, handles)
+% hObject    handle to botao_logtxt (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global printLog
+filename = 'log.txt';
+writetable(tabela(printLog,get(handles.fibonacci,'Value'),get(handles.aurea,'Value'),get(handles.interpol,'Value')),filename,'Delimiter', ' ')
+winopen log.txt
+
+function TLog = tabela(printLog, fib, aurea, interpol)
+if fib==1 
+    TLog = cell2table(printLog,'VariableNames',{'Iteracao','x1','x2','Delta_x','Fx1','Fx2'});
+end
+if aurea==1 
+%Cria tabela
+end
+if interpol==1 
+%Cria tabela
+end
+
+
+% --- Executes on button press in Grid_on_off.
+function Grid_on_off_Callback(hObject, eventdata, handles)
+% hObject    handle to Grid_on_off (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global grade
+if grade == 1
+    grid off
+    grade = 0;
+else
+    grid on
+    grade = 1;
+end
+
