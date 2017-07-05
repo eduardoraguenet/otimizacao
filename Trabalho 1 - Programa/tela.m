@@ -243,7 +243,58 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% METODO PROPORCAO AUREA %%
 if get(handles.aurea,'Value')==1
+     x1 = a;  %Ponto "a" = Mais afastado à esquerda do intervalo escolhido
+     x4 = b;
+ % Ponto "b" = Mais afastado à direita do intervalo escolhido
+        
+espacamento_x2=0; %%Variáveis criadas para evitar que x3 e x2 caem no mesmo ponto=casos patológicos descritos na apostila ver pg.43
+espacamento_x3=0;
+delta = 0.01; %Erro tolerado
 
+L0 = x4-x1;
+
+%%Inicialização - L0
+
+u = (sqrt(5)-1)/2;
+
+x2 = u*x1 + (1-u)*x4 + espacamento_x2;
+f2 = f(x2);
+x3 = u*x4+(1-u)*x1 + espacamento_x3;
+f3 = f(x3);
+
+%%Algoritmo geral L1 em diante descrita na página 43
+L1 = delta+1;
+it = 0;
+while L1>delta
+    if f2<f3
+        
+    L1 = x3-x1;
+    x4=x3;  
+    x2 = u*x1 + (1-u)*x4+espacamento_x2;
+    f2 = f(x2);
+    x3 = u*x4+(1-u)*x1+espacamento_x3;
+    f3 = f(x3);
+    it=it+1;
+else
+    
+    L1 = x4-x2;
+    x1 = x2; 
+    x2 = u*x1 + (1-u)*x4;
+    f2 =f(x2);
+    x3 = u*x4+(1-u)*x1;
+    f3 = f(x3);
+    it = it+1;
+    end
+
+    if f2<f3
+    xmin = x2;
+    fmin = f2;
+else
+    xmin = x3;
+    fmin = f3;   
+end
+   
+end
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
